@@ -1,0 +1,19 @@
+fail_fast: true
+repos:
+  - repo: local
+    hooks:
+      - id: black
+        entry: bash -ec 'venv/bin/black .'
+        language: system
+        name: Format backend with black
+        files: .py$
+      - id: flake8
+        entry: bash -ec 'venv/bin/flake8 .'
+        language: system
+        name: Lint backend with flake8
+        files: .py$
+      - id: nosetests
+        entry: bash -ec 'venv/bin/nosetests -s -logging-level=WARN .'
+        language: system
+        name: Run nosetests
+        files: \.py$
