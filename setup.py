@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="dict-to-dataclass",
+    name="dict_to_dataclass",
     version="0.0.1",
     author="Daniel Jack",
     author_email="jackd68ed@googlemail.com",
