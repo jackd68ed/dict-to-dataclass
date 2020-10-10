@@ -12,7 +12,7 @@ from dict_to_dataclass import (
 )
 
 
-class DataclassFromJSONResponseTestCase(TestCase):
+class DictToDataclassTestCase(TestCase):
     def test_should_return_dataclass_instance(self):
         @dataclass
         class TestClass:
@@ -41,6 +41,17 @@ class DataclassFromJSONResponseTestCase(TestCase):
             test_int_field=123,
             test_str_field="string_value",
         )
+
+        self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
+
+    def test_should_use_field_name_if_dict_key_is_missing(self):
+        @dataclass
+        class TestClass:
+            my_field: str = field_from_dict()
+
+        origin_dict = {"my_field": "valueDoesntMatter"}
+
+        expected = TestClass(my_field="valueDoesntMatter")
 
         self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
 
@@ -81,7 +92,7 @@ class DataclassFromJSONResponseTestCase(TestCase):
 
         self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
 
-    def test_should_get_field_of_list__of_dataclasses(self):
+    def test_should_get_field_of_list_of_dataclasses(self):
         @dataclass
         class TestChildClass:
             param: str = field_from_dict("testChildStrField")

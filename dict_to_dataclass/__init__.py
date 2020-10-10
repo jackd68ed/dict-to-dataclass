@@ -1,47 +1,67 @@
-from dataclasses import field, fields, Field, is_dataclass
-from typing import Callable, TypeVar, Type
+from dataclasses import Field, field, fields, is_dataclass
+from typing import Any, Callable, Dict, Optional, Type, TypeVar
 
 
 class DataclassFromDictError(Exception):
+    """Raised when an error occurs during the conversion of a dict to a dataclass instance"""
+
     pass
 
 
 class DictKeyNotFoundError(DataclassFromDictError):
+    """Raised when a key cannot be found in a dictionary while converting it to a dataclass instance"""
+
     def __init__(self, dataclass_field: Field, response):
         self.field = dataclass_field
         self.response = response
 
 
 class DictValueConversionError(DataclassFromDictError):
-    def __init__(self, dataclass_field: Field, value_from_json):
+    """Raised when a value in a dictionary cannot be converted"""
+
+    def __init__(self, dataclass_field: Optional[Field], value_from_json):
         self.field = dataclass_field
         self.value_from_json = value_from_json
 
 
 class NonSpecificListFieldError(DataclassFromDictError):
+    """Raised when a list field in a dataclass does not specify the type of its items
+
+    E.g.::
+
+        list_of_strings: List = field_from_dict()
+
+    Instead of::
+
+        list_of_strings: List[str] = field_from_dict()
+    """
+
     pass
 
 
 def field_from_dict(
-    dict_key: str,
+    dict_key: str = None,
     converter: Callable = None,
     ignore_conversion_errors: bool = False,
     *args,
     **kwargs,
 ):
-    """Creates a dataclass field with required metadata for extracting it from a `dict`
+    """A dataclass field with required metadata for extracting it from a `dict`
 
-    :param dict_key: The key in the dict that contains the value for this field
+    :param dict_key: The key in the dict that contains the value for this field. If omitted, the name of the field in
+        the dataclass is used.
     :param converter: The function to convert the dict value to the type of the class field
     :param ignore_conversion_errors: True if `DictValueConversionError`s should be ignored. `None` will be returned on
         error if True.
     """
     dict_field_metadata = {
-        "dict_key": dict_key,
         "converter": converter,
+        "dict_key": dict_key,
         "ignore_conversion_errors": ignore_conversion_errors,
+        "should_get_from_dict": True,
     }
-    metadata = {**kwargs.pop("metadata", {}), **dict_field_metadata}
+    metadata: Dict[str, Any] = {**kwargs.pop("metadata", {}), **dict_field_metadata}
+
     return field(metadata=metadata, *args, **kwargs)
 
 
@@ -75,16 +95,19 @@ def _convert_value_for_dataclass(value_from_dict, dc_field: Field = None, list_i
 
     if field_converter:
         return field_converter(value_from_dict)
-    elif _type_is_list_with_item_type(field_type):
+
+    if _type_is_list_with_item_type(field_type):
         return [_convert_value_for_dataclass(item, list_item_type=field_type.__args__[0]) for item in value_from_dict]
     elif field_type is list:
         raise NonSpecificListFieldError()
-    elif is_dataclass(field_type):
+
+    if is_dataclass(field_type):
         return dataclass_from_dict(field_type, value_from_dict)
-    elif _no_conversion_required_for_json_value(value_from_dict, field_type):
+
+    if _no_conversion_required_for_json_value(value_from_dict, field_type):
         return value_from_dict
-    else:
-        raise DictValueConversionError(dc_field, value_from_dict)
+
+    raise DictValueConversionError(dc_field, value_from_dict)
 
 
 T = TypeVar("T")
@@ -106,22 +129,22 @@ def dataclass_from_dict(dataclass_type: Type[T], origin_dict: dict) -> T:
     init_args = {}
 
     for dc_field in fields(dataclass_type):
-        dict_key = dc_field.metadata.get("dict_key")
-
         # Ignore non-json response fields
-        if dict_key is None:
+        if not dc_field.metadata.get("should_get_from_dict"):
             continue
 
-        if dict_key not in origin_dict:
-            raise DictKeyNotFoundError(dc_field, origin_dict)
+        # Use the dict_key provided or the field's name if omitted
+        dict_key = dc_field.metadata.get("dict_key") or dc_field.name
 
-        value_from_dict = origin_dict[dict_key]
-        ignore_conversion_errors = dc_field.metadata.get("ignore_conversion_errors")
+        try:
+            value_from_dict = origin_dict[dict_key]
+        except KeyError:
+            raise DictKeyNotFoundError(dc_field, origin_dict)
 
         try:
             converted_value = _convert_value_for_dataclass(value_from_dict, dc_field)
         except DictValueConversionError as e:
-            if not ignore_conversion_errors:
+            if not dc_field.metadata.get("ignore_conversion_errors", False):
                 raise e
             else:
                 converted_value = None
