@@ -10,7 +10,7 @@ setuptools.setup(
     author_email="jackd68ed@googlemail.com",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=setuptools.find_packages("dict_to_dataclass"),
+    packages=setuptools.find_packages("dict_to_dataclass", exclude="tests/**"),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
