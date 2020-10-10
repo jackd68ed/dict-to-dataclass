@@ -1,42 +1,8 @@
 from dataclasses import Field, field, fields, is_dataclass
-from typing import Any, Callable, Dict, Optional, Type, TypeVar
+from dict_to_dataclass.exceptions import DictKeyNotFoundError, DictValueConversionError, NonSpecificListFieldError
+from typing import Any, Callable, Dict, Type, TypeVar
 
-
-class DataclassFromDictError(Exception):
-    """Raised when an error occurs during the conversion of a dict to a dataclass instance"""
-
-    pass
-
-
-class DictKeyNotFoundError(DataclassFromDictError):
-    """Raised when a key cannot be found in a dictionary while converting it to a dataclass instance"""
-
-    def __init__(self, dataclass_field: Field, response):
-        self.field = dataclass_field
-        self.response = response
-
-
-class DictValueConversionError(DataclassFromDictError):
-    """Raised when a value in a dictionary cannot be converted"""
-
-    def __init__(self, dataclass_field: Optional[Field], value_from_json):
-        self.field = dataclass_field
-        self.value_from_json = value_from_json
-
-
-class NonSpecificListFieldError(DataclassFromDictError):
-    """Raised when a list field in a dataclass does not specify the type of its items
-
-    E.g.::
-
-        list_of_strings: List = field_from_dict()
-
-    Instead of::
-
-        list_of_strings: List[str] = field_from_dict()
-    """
-
-    pass
+from dict_to_dataclass.converters import default_value_converter_map
 
 
 def field_from_dict(
@@ -106,6 +72,9 @@ def _convert_value_for_dataclass(value_from_dict, dc_field: Field = None, list_i
 
     if _no_conversion_required_for_json_value(value_from_dict, field_type):
         return value_from_dict
+
+    if (convert := default_value_converter_map.get(field_type.__name__)) is not None:
+        return convert(dc_field, value_from_dict)
 
     raise DictValueConversionError(dc_field, value_from_dict)
 
