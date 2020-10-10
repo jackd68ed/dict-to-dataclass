@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
+from dict_to_dataclass.base_class import DataclassFromDict
 from typing import List
 from unittest import TestCase
 
@@ -50,6 +51,19 @@ class DictToDataclassTestCase(TestCase):
             my_field: str = field_from_dict()
 
         origin_dict = {"my_field": "valueDoesntMatter"}
+
+        expected = TestClass(my_field="valueDoesntMatter")
+
+        self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
+
+    def test_should_use_camel_cased_field_name_if_dict_key_is_missing_and_dict_has_camel_case_keys(self):
+        @dataclass
+        class TestClass(DataclassFromDict):
+            dict_has_camel_case_keys = True
+
+            my_field: str = field_from_dict()
+
+        origin_dict = {"myField": "valueDoesntMatter"}
 
         expected = TestClass(my_field="valueDoesntMatter")
 

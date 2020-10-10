@@ -110,6 +110,27 @@ def _convert_value_for_dataclass(value_from_dict, dc_field: Field = None, list_i
     raise DictValueConversionError(dc_field, value_from_dict)
 
 
+def _to_camel_case(snake_str: str):
+    """Converts the given snake_case string to camelCase"""
+    components = snake_str.split("_")
+    return components[0] + "".join(x.title() for x in components[1:])
+
+
+def _get_value_from_dict(dc_field: Field, origin_dict: dict):
+    # Use the dict_key provided or the field's name if omitted
+    if (dict_key := dc_field.metadata.get("dict_key")) is not None:
+        try:
+            return origin_dict[dict_key]
+        except KeyError:
+            raise DictKeyNotFoundError(dc_field, origin_dict)
+    else:
+        try:
+            # First, try the field's name. If that's not found, try it in camelCase.
+            return origin_dict.get(dc_field.name) or origin_dict[_to_camel_case(dc_field.name)]
+        except KeyError:
+            raise DictKeyNotFoundError(dc_field, origin_dict)
+
+
 T = TypeVar("T")
 
 
@@ -133,13 +154,7 @@ def dataclass_from_dict(dataclass_type: Type[T], origin_dict: dict) -> T:
         if not dc_field.metadata.get("should_get_from_dict"):
             continue
 
-        # Use the dict_key provided or the field's name if omitted
-        dict_key = dc_field.metadata.get("dict_key") or dc_field.name
-
-        try:
-            value_from_dict = origin_dict[dict_key]
-        except KeyError:
-            raise DictKeyNotFoundError(dc_field, origin_dict)
+        value_from_dict = _get_value_from_dict(dc_field, origin_dict)
 
         try:
             converted_value = _convert_value_for_dataclass(value_from_dict, dc_field)
