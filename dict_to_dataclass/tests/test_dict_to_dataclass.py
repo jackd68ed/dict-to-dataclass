@@ -21,7 +21,7 @@ class DictToDataclassTestCase(TestCase):
 
         self.assertEqual(TestClass(), dataclass_from_dict(TestClass, {}))
 
-    def test_should_get_basic_field_values_from_json_response(self):
+    def test_should_get_basic_field_values_from_dict(self):
         @dataclass
         class TestClass:
             test_bool_field: bool = field_from_dict("testBoolField")

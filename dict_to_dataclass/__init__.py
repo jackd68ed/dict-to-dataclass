@@ -46,13 +46,28 @@ def _type_is_list_with_item_type(field_type):
     return is_list
 
 
+def _get_optional_type(field_type: Type) -> Type:
+    """If the given type is optional, return the type that is not none. If not, the given field is returned.
+
+    Example::
+
+        _get_optional_type(Type[Optional[str]])  # str
+        _get_optional_type(Type[str])  # str
+    """
+
+    # TODO: There must be a better way
+    if str(field_type).startswith("typing.Union"):
+        return next(arg for arg in field_type.__args__ if arg is not None)
+    else:
+        return field_type
+
+
 def _use_default_converter(dc_field: Optional[Field], field_type: Any, value_from_dict: Any):
     try:
         if (convert := default_value_converter_map.get(field_type.__name__)) is not None:
             return convert(dc_field, value_from_dict)
     except AttributeError:
         # Sometimes field_type doesn't have a __name__ attribute. Not sure why yet.
-        print(field_type)
         pass
 
     return None
@@ -66,6 +81,10 @@ def _convert_value_for_dataclass(value_from_dict, dc_field: Field = None, list_i
     :param list_item_type: The type of the items in the list if the target field type is a `typing.List[type]`
     """
     field_type = dc_field.type if dc_field else list_item_type
+
+    # Handle optional types
+    field_type = _get_optional_type(field_type)
+
     if field_type is None:
         raise Exception("Please provide either dc_field or list_item_type")
 
