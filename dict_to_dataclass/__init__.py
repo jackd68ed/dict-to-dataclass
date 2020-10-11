@@ -1,6 +1,6 @@
 from dataclasses import Field, field, fields, is_dataclass
 from dict_to_dataclass.exceptions import DictKeyNotFoundError, DictValueConversionError, NonSpecificListFieldError
-from typing import Any, Callable, Dict, Type, TypeVar
+from typing import Any, Callable, Dict, Optional, Type, TypeVar
 
 from dict_to_dataclass.converters import default_value_converter_map
 
@@ -46,6 +46,18 @@ def _type_is_list_with_item_type(field_type):
     return is_list
 
 
+def _use_default_converter(dc_field: Optional[Field], field_type: Any, value_from_dict: Any):
+    try:
+        if (convert := default_value_converter_map.get(field_type.__name__)) is not None:
+            return convert(dc_field, value_from_dict)
+    except AttributeError:
+        # Sometimes field_type doesn't have a __name__ attribute. Not sure why yet.
+        print(field_type)
+        pass
+
+    return None
+
+
 def _convert_value_for_dataclass(value_from_dict, dc_field: Field = None, list_item_type=None):
     """Convert a value from a dict for a dataclass field
 
@@ -62,6 +74,9 @@ def _convert_value_for_dataclass(value_from_dict, dc_field: Field = None, list_i
     if field_converter:
         return field_converter(value_from_dict)
 
+    if (default_converter_value := _use_default_converter(dc_field, field_type, value_from_dict)) is not None:
+        return default_converter_value
+
     if _type_is_list_with_item_type(field_type):
         return [_convert_value_for_dataclass(item, list_item_type=field_type.__args__[0]) for item in value_from_dict]
     elif field_type is list:
@@ -72,9 +87,6 @@ def _convert_value_for_dataclass(value_from_dict, dc_field: Field = None, list_i
 
     if _no_conversion_required_for_json_value(value_from_dict, field_type):
         return value_from_dict
-
-    if (convert := default_value_converter_map.get(field_type.__name__)) is not None:
-        return convert(dc_field, value_from_dict)
 
     raise DictValueConversionError(dc_field, value_from_dict)
 
