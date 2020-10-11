@@ -128,3 +128,34 @@ origin_dict = {
 # Here, a `NonSpecificListFieldError` is raised
 dataclass_instance = MyDataclass.from_dict(origin_dict)
 ```
+
+## Custom value converters
+
+By default, `str`, `int`, `bool`, `float` types can be taken from dictionaries without conversion.
+
+Dataclass fields of type `datetime` can be converted from
+
+- Strings (handled by `dateutil`)
+- Python-style timestamps of type `float`, e.g. `1602436272.681808`
+- Javascript-style timestamps of type `int`, e.g. `1602436323268`
+
+If you need to convert a dictionary value that isn't covered by the defaults, you can pass in a converter function to `field_from_dict`:
+
+```python
+def yes_no_to_bool(yes_no: str) -> bool:
+    return yes_no == "yes"
+
+
+@dataclass
+class MyDataclass(DataclassFromDict):
+    is_yes: bool = field_from_dict(converter=yes_no_to_bool)
+
+origin_dict = {
+    "is_yes": "yes"
+}
+
+dataclass_instance = MyDataclass.from_dict(origin_dict)
+
+>>> dataclass_instance.is_yes
+True
+```
