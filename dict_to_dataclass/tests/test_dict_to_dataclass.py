@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from decimal import Decimal
 from dict_to_dataclass.base_class import DataclassFromDict
-from typing import List
+from typing import List, Optional
 from unittest import TestCase
 
 from dict_to_dataclass import (
@@ -67,6 +67,18 @@ class DictToDataclassTestCase(TestCase):
 
         expected = TestClass(my_field="valueDoesntMatter")
 
+        self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
+
+    def test_should_not_error_if_field_name_exists_in_dict_but_has_none_value(self):
+        # Inspired by this happening in another project
+
+        @dataclass
+        class TestClass(DataclassFromDict):
+            my_field: Optional[str] = field_from_dict()
+
+        origin_dict = {"my_field": None}
+
+        expected = TestClass(my_field=None)
         self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
 
     def test_should_use_field_converter_if_present(self):

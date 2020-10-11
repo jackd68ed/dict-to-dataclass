@@ -86,18 +86,25 @@ def _to_camel_case(snake_str: str):
 
 
 def _get_value_from_dict(dc_field: Field, origin_dict: dict):
-    # Use the dict_key provided or the field's name if omitted
+    # Use the dict_key in the field metadata if one was provided
     if (dict_key := dc_field.metadata.get("dict_key")) is not None:
         try:
             return origin_dict[dict_key]
         except KeyError:
             raise DictKeyNotFoundError(dc_field, origin_dict)
-    else:
-        try:
-            # First, try the field's name. If that's not found, try it in camelCase.
-            return origin_dict.get(dc_field.name) or origin_dict[_to_camel_case(dc_field.name)]
-        except KeyError:
-            raise DictKeyNotFoundError(dc_field, origin_dict)
+
+    # TODO: Test that we don't error if the snake_case field name is in the dict but has a `None` value
+    # If not, first, try the field's name
+    try:
+        return origin_dict[dc_field.name]
+    except KeyError:
+        pass
+
+    # If that's not found, try it in camelCase
+    try:
+        return origin_dict[_to_camel_case(dc_field.name)]
+    except KeyError:
+        raise DictKeyNotFoundError(dc_field, origin_dict)
 
 
 T = TypeVar("T")
