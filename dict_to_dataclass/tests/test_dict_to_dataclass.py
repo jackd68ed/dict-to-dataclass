@@ -178,7 +178,7 @@ class DictToDataclassTestCase(TestCase):
 
         self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
 
-    def test_should_raise_error_if_attribute_not_found(self):
+    def test_should_raise_error_if_key_not_found(self):
         @dataclass
         class TestClass:
             param: str = field_from_dict("notFoundField")
@@ -187,6 +187,16 @@ class DictToDataclassTestCase(TestCase):
 
         with self.assertRaises(DictKeyNotFoundError):
             dataclass_from_dict(TestClass, origin_dict)
+
+    def test_not_should_raise_error_if_key_not_found_for_field_with_default_value(self):
+        @dataclass
+        class TestClass:
+            param: str = field_from_dict("notFoundField", default="default value")
+
+        origin_dict = {"unexpectedField": "value"}
+
+        expected = TestClass(param="default value")
+        self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
 
     def test_should_raise_error_if_attribute_cannot_be_converted(self):
         @dataclass

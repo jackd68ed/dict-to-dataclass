@@ -1,4 +1,4 @@
-from dataclasses import Field, field, fields, is_dataclass
+from dataclasses import Field, field, fields, is_dataclass, MISSING
 from dict_to_dataclass.exceptions import (
     DictKeyNotFoundError,
     DictValueConversionError,
@@ -169,7 +169,14 @@ def dataclass_from_dict(dataclass_type: Type[T], origin_dict: dict) -> T:
         if not dc_field.metadata.get("should_get_from_dict"):
             continue
 
-        value_from_dict = _get_value_from_dict(dc_field, origin_dict)
+        try:
+            value_from_dict = _get_value_from_dict(dc_field, origin_dict)
+        except DictKeyNotFoundError:
+            # If the field has a default value, we can just not include it when constructing the dataclass instance
+            if dc_field.default != MISSING or dc_field.default_factory != MISSING:
+                continue
+            else:
+                raise
 
         if not _type_is_optional(dc_field.type) and value_from_dict is None:
             raise DictValueNotFoundError(dc_field, origin_dict)
