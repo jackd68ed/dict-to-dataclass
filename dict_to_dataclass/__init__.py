@@ -180,6 +180,9 @@ def dataclass_from_dict(dataclass_type: Type[T], origin_dict: dict) -> T:
 
         if not _type_is_optional(dc_field.type) and value_from_dict is None:
             raise DictValueNotFoundError(dc_field, origin_dict)
+        elif value_from_dict is None:
+            # Here, we've got a value of None for an optional field. Don't bother trying to convert it.
+            init_args[dc_field.name] = value_from_dict
 
         try:
             converted_value = _convert_value_for_dataclass(value_from_dict, dc_field)
