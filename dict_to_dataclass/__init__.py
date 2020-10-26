@@ -1,5 +1,10 @@
 from dataclasses import Field, field, fields, is_dataclass
-from dict_to_dataclass.exceptions import DictKeyNotFoundError, DictValueConversionError, NonSpecificListFieldError
+from dict_to_dataclass.exceptions import (
+    DictKeyNotFoundError,
+    DictValueConversionError,
+    NonSpecificListFieldError,
+    DictValueNotFoundError,
+)
 from typing import Any, Callable, Dict, Optional, Type, TypeVar
 
 from dict_to_dataclass.converters import default_value_converter_map
@@ -46,6 +51,11 @@ def _type_is_list_with_item_type(field_type):
     return is_list
 
 
+def _type_is_optional(field_type: Type):
+    # TODO: There must be a better way
+    return str(field_type).startswith("typing.Union")
+
+
 def _get_optional_type(field_type: Type) -> Type:
     """If the given type is optional, return the type that is not none. If not, the given field is returned.
 
@@ -54,9 +64,7 @@ def _get_optional_type(field_type: Type) -> Type:
         _get_optional_type(Type[Optional[str]])  # str
         _get_optional_type(Type[str])  # str
     """
-
-    # TODO: There must be a better way
-    if str(field_type).startswith("typing.Union"):
+    if _type_is_optional(field_type):
         return next(arg for arg in field_type.__args__ if arg is not None)
     else:
         return field_type
@@ -145,10 +153,10 @@ def dataclass_from_dict(dataclass_type: Type[T], origin_dict: dict) -> T:
     """Create a dataclass instance from the given parsed dict
 
     :param dataclass_type: The type of the dataclass to be instantiated
-    :param origin_dict: The parsed json response
-    :raises JSONAttributeNotFoundError: Raised if an attribute defined in a dataclass field's metadata is not found
+    :param origin_dict: The dictionary to convert
+    :raises DictKeyNotFoundError: Raised if an attribute defined in a dataclass field's metadata is not found
         in the json response
-    :raises JSONAttributeConversionError: Raised if the value in the json response can't be converted to the associated
+    :raises DictValueConversionError: Raised if the value in the json response can't be converted to the associated
         dataclass field's type
     """
     if not is_dataclass(dataclass_type):
@@ -162,6 +170,9 @@ def dataclass_from_dict(dataclass_type: Type[T], origin_dict: dict) -> T:
             continue
 
         value_from_dict = _get_value_from_dict(dc_field, origin_dict)
+
+        if not _type_is_optional(dc_field.type) and value_from_dict is None:
+            raise DictValueNotFoundError(dc_field, origin_dict)
 
         try:
             converted_value = _convert_value_for_dataclass(value_from_dict, dc_field)

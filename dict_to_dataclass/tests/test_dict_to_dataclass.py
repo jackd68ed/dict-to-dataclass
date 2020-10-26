@@ -10,6 +10,7 @@ from dict_to_dataclass import (
     DictKeyNotFoundError,
     DictValueConversionError,
     NonSpecificListFieldError,
+    DictValueNotFoundError,
 )
 
 
@@ -69,7 +70,7 @@ class DictToDataclassTestCase(TestCase):
 
         self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
 
-    def test_should_not_error_if_field_name_exists_in_dict_but_has_none_value(self):
+    def test_should_not_error_if_optional_field_name_exists_in_dict_but_has_none_value(self):
         # Inspired by this happening in another project
 
         @dataclass
@@ -80,6 +81,22 @@ class DictToDataclassTestCase(TestCase):
 
         expected = TestClass(my_field=None)
         self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
+
+    def test_should_error_if_non_optional_field_name_exists_in_dict_but_has_none_value(self):
+        @dataclass
+        class TestClass(DataclassFromDict):
+            my_field: str = field_from_dict()
+
+        origin_dict = {"my_field": None}
+
+        with self.assertRaises(DictValueNotFoundError) as context:
+            dataclass_from_dict(TestClass, origin_dict)
+
+        expected_message = (
+            "A value of None was found for the field, my_field but the field does not have an optional type. If you "
+            "expect the value of this field to potentially be None, you can make its type Optional[str]."
+        )
+        self.assertEqual(str(context.exception), expected_message)
 
     def test_should_use_field_converter_if_present(self):
         @dataclass
