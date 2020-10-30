@@ -36,7 +36,7 @@ def field_from_dict(
     return field(metadata=metadata, *args, **kwargs)
 
 
-def _no_conversion_required_for_json_value(value, field_type):
+def _no_conversion_required_for_dict_value(value, field_type):
     """True if the given value from a dict can be set to a dataclass field without conversation"""
     return (field_type in [bool, float, int, str] and isinstance(value, field_type)) or value is None
 
@@ -112,7 +112,7 @@ def _convert_value_for_dataclass(value_from_dict, dc_field: Field = None, list_i
     if is_dataclass(field_type):
         return dataclass_from_dict(field_type, value_from_dict)
 
-    if _no_conversion_required_for_json_value(value_from_dict, field_type):
+    if _no_conversion_required_for_dict_value(value_from_dict, field_type):
         return value_from_dict
 
     raise DictValueConversionError(dc_field, value_from_dict)
@@ -155,9 +155,12 @@ def dataclass_from_dict(dataclass_type: Type[T], origin_dict: dict) -> T:
     :param dataclass_type: The type of the dataclass to be instantiated
     :param origin_dict: The dictionary to convert
     :raises DictKeyNotFoundError: Raised if an attribute defined in a dataclass field's metadata is not found
-        in the json response
-    :raises DictValueConversionError: Raised if the value in the json response can't be converted to the associated
+        in the origin dict
+    :raises DictValueNotFoundError: Raised when a value is None in a dictionary and the field is not Optional in the
+        dataclass
+    :raises DictValueConversionError: Raised if the value in the origin dict can't be converted to the associated
         dataclass field's type
+    :raises NonSpecificListFieldError: Raised when a list field in a dataclass does not specify the type of its items
     """
     if not is_dataclass(dataclass_type):
         raise TypeError(f"dataclass_type must be a dataclass. Received {dataclass_type}")
@@ -165,7 +168,7 @@ def dataclass_from_dict(dataclass_type: Type[T], origin_dict: dict) -> T:
     init_args = {}
 
     for dc_field in fields(dataclass_type):
-        # Ignore non-json response fields
+        # Ignore ordinary dataclass fields
         if not dc_field.metadata.get("should_get_from_dict"):
             continue
 
