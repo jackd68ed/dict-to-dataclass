@@ -160,7 +160,7 @@ def dataclass_from_dict(dataclass_type: Type[T], origin_dict: dict) -> T:
         dataclass
     :raises DictValueConversionError: Raised if the value in the origin dict can't be converted to the associated
         dataclass field's type
-    :raises NonSpecificListFieldError: Raised when a list field in a dataclass does not specify the type of its items
+    :raises UnspecificListFieldError: Raised when a list field in a dataclass does not specify the type of its items
     """
     if not is_dataclass(dataclass_type):
         raise TypeError(f"dataclass_type must be a dataclass. Received {dataclass_type}")
