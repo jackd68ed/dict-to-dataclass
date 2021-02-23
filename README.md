@@ -1,3 +1,11 @@
+# Table of contents
+
+- [Dict to dataclass](#dict-to-dataclass)
+  - [Nested data classes](#nested-data-classes)
+  - [Finding dictionary values](#finding-dictionary-values)
+  - [Lists](#lists)
+  - [Custom value converters](#custom-value-converters)
+
 # Dict to dataclass
 
 Utils for mapping dataclass fields to dictionary keys, making it possible to create an instance of a dataclass from a dictionary.
