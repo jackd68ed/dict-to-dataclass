@@ -38,7 +38,7 @@ class DictValueConversionError(DataclassFromDictError):
         self.value_from_json = value_from_dict
 
 
-class NonSpecificListFieldError(DataclassFromDictError):
+class UnspecificListFieldError(DataclassFromDictError):
     """Raised when a list field in a dataclass does not specify the type of its items
 
     E.g.::

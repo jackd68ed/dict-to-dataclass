@@ -9,7 +9,7 @@ from dict_to_dataclass import (
     field_from_dict,
     DictKeyNotFoundError,
     DictValueConversionError,
-    NonSpecificListFieldError,
+    UnspecificListFieldError,
     DictValueNotFoundError,
 )
 
@@ -231,8 +231,8 @@ class DictToDataclassTestCase(TestCase):
 
         origin_dict = {"testList": []}
 
-        with self.assertRaises(NonSpecificListFieldError):
+        with self.assertRaises(UnspecificListFieldError):
             dataclass_from_dict(TestClass1, origin_dict)
 
-        with self.assertRaises(NonSpecificListFieldError):
+        with self.assertRaises(UnspecificListFieldError):
             dataclass_from_dict(TestClass2, origin_dict)

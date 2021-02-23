@@ -2,7 +2,7 @@ from dataclasses import Field, field, fields, is_dataclass, MISSING
 from dict_to_dataclass.exceptions import (
     DictKeyNotFoundError,
     DictValueConversionError,
-    NonSpecificListFieldError,
+    UnspecificListFieldError,
     DictValueNotFoundError,
 )
 from typing import Any, Callable, Dict, Optional, Type, TypeVar
@@ -46,7 +46,7 @@ def _type_is_list_with_item_type(field_type):
     is_list = hasattr(field_type, "__origin__") and field_type.__origin__ is list
 
     if is_list and isinstance(field_type.__args__[0], TypeVar):
-        raise NonSpecificListFieldError()
+        raise UnspecificListFieldError()
 
     return is_list
 
@@ -107,7 +107,7 @@ def _convert_value_for_dataclass(value_from_dict, dc_field: Field = None, list_i
     if _type_is_list_with_item_type(field_type):
         return [_convert_value_for_dataclass(item, list_item_type=field_type.__args__[0]) for item in value_from_dict]
     elif field_type is list:
-        raise NonSpecificListFieldError()
+        raise UnspecificListFieldError()
 
     if is_dataclass(field_type):
         return dataclass_from_dict(field_type, value_from_dict)
