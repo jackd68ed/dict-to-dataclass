@@ -5,7 +5,7 @@ from unittest import TestCase
 
 from dict_to_dataclass import field_from_dict
 from dict_to_dataclass.base_class import DataclassFromDict
-from dict_to_dataclass.exceptions import DictValueConversionError
+from dict_to_dataclass.converters.enum_converter import EnumValueNotFoundError
 
 
 class MyEnum(Enum):
@@ -31,13 +31,13 @@ class EnumConverterTestCase(TestCase):
         self.assertEqual(dataclass_instance.enum_field, MyEnum.SECOND)
 
     def test_should_raise_conversion_error_if_enum_value_doesnt_exist(self):
-        with self.assertRaises(DictValueConversionError):
+        with self.assertRaises(EnumValueNotFoundError):
             MyDataclass.from_dict({"enumField": "DOESNT_EXIST"})
 
-        with self.assertRaises(DictValueConversionError):
+        with self.assertRaises(EnumValueNotFoundError):
             MyDataclass.from_dict({"enumField": 1})
 
-        with self.assertRaises(DictValueConversionError):
+        with self.assertRaises(EnumValueNotFoundError):
             MyDataclass.from_dict({"enumField": True})
 
     def test_should_handle_optional_type(self):

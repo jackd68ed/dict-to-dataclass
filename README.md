@@ -202,6 +202,8 @@ dataclass_instance = MyDataclass.from_dict(origin_dict)
 <Number.TWO: 2>
 ```
 
+The value in the dictionary should be the name of the Enum value as a string. If the value is not found, an `EnumValueNotFoundError` is raised.
+
 ### Custom converters
 
 If you need to convert a dictionary value that isn't covered by the defaults, you can pass in a converter function using `field_from_dict`'s `converter` parameter:
