@@ -4,7 +4,10 @@
   - [Nested data classes](#nested-data-classes)
   - [Finding dictionary values](#finding-dictionary-values)
   - [Lists](#lists)
-  - [Custom value converters](#custom-value-converters)
+  - [Value conversion](#value-conversion)
+    - [Datetime](#datetime)
+    - [Enum](#enum)
+    - [Custom converters](#custom-converters)
 
 # Dict to dataclass
 
@@ -163,15 +166,45 @@ dataclass_instance = Parent.from_dict(origin_dict)
 [Child(name='Jane'), Child(name='Joe')]
 ```
 
-## Custom value converters
+## Value conversion
 
 By default, `str`, `int`, `bool` and `float` types can be taken from dictionaries without conversion.
+
+### Datetime
 
 Dataclass fields of type `datetime` are also handled and can be converted from
 
 - Strings (handled by [dateutil](https://dateutil.readthedocs.io/en/stable/))
 - Python-style timestamps of type `float`, e.g. `1602436272.681808`
 - Javascript-style timestamps of type `int`, e.g. `1602436323268`
+
+### Enum
+
+Dataclass fields with an `Enum` type can also be converted by default:
+
+```python
+class Number(Enum):
+    ONE = 1
+    TWO = 2
+    THREE = 3
+
+
+@dataclass
+class MyDataclass(DataclassFromDict):
+    number: Number = field_from_dict()
+
+
+origin_dict = {"number": "TWO"}
+
+dataclass_instance = MyDataclass.from_dict(origin_dict)
+
+>>> dataclass_instance.number
+<Number.TWO: 2>
+```
+
+The value in the dictionary should be the name of the Enum value as a string. If the value is not found, an `EnumValueNotFoundError` is raised.
+
+### Custom converters
 
 If you need to convert a dictionary value that isn't covered by the defaults, you can pass in a converter function using `field_from_dict`'s `converter` parameter:
 

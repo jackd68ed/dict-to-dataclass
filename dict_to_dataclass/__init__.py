@@ -1,13 +1,15 @@
-from dataclasses import Field, field, fields, is_dataclass, MISSING
-from dict_to_dataclass.exceptions import (
-    DictKeyNotFoundError,
-    DictValueConversionError,
-    UnspecificListFieldError,
-    DictValueNotFoundError,
-)
+from dataclasses import MISSING, Field, field, fields, is_dataclass
+from enum import Enum
 from typing import Any, Callable, Dict, Optional, Type, TypeVar
 
 from dict_to_dataclass.converters import default_value_converter_map
+from dict_to_dataclass.converters.enum_converter import convert_enum
+from dict_to_dataclass.exceptions import (
+    DictKeyNotFoundError,
+    DictValueConversionError,
+    DictValueNotFoundError,
+    UnspecificListFieldError,
+)
 
 
 def field_from_dict(
@@ -71,6 +73,13 @@ def _get_optional_type(field_type: Type) -> Type:
 
 
 def _use_default_converter(dc_field: Optional[Field], field_type: Any, value_from_dict: Any):
+    try:
+        if issubclass(field_type, Enum):
+            return convert_enum(dc_field, value_from_dict, enum=field_type)
+    except TypeError:
+        # The first arg to `issubclass` must be a class
+        pass
+
     try:
         if (convert := default_value_converter_map.get(field_type.__name__)) is not None:
             return convert(dc_field, value_from_dict)
