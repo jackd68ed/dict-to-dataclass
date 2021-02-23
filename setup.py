@@ -21,4 +21,5 @@ setuptools.setup(
     ],
     python_requires=">=3.7",
     install_requires=requirements,
+    url="https://github.com/jackd68ed/dict-to-dataclass",
 )

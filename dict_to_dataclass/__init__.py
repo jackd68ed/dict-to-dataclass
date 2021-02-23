@@ -11,6 +11,8 @@ from dict_to_dataclass.exceptions import (
     UnspecificListFieldError,
 )
 
+__version__ = "0.0.4"
+
 
 def field_from_dict(
     dict_key: str = None,
