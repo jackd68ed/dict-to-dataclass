@@ -174,13 +174,13 @@ def dataclass_from_dict(dataclass_type: Type[T], origin_dict: dict) -> T:
     if not is_dataclass(dataclass_type):
         raise TypeError(f"dataclass_type must be a dataclass. Received {dataclass_type}")
 
-    init_args = {}
+    # Ignore ordinary dataclass fields
+    fields_from_dict = (
+        dc_field for dc_field in fields(dataclass_type) if dc_field.metadata.get("should_get_from_dict")
+    )
+    dc_init_args = {}
 
-    for dc_field in fields(dataclass_type):
-        # Ignore ordinary dataclass fields
-        if not dc_field.metadata.get("should_get_from_dict"):
-            continue
-
+    for dc_field in fields_from_dict:
         try:
             value_from_dict = _get_value_from_dict(dc_field, origin_dict)
         except DictKeyNotFoundError:
@@ -194,17 +194,17 @@ def dataclass_from_dict(dataclass_type: Type[T], origin_dict: dict) -> T:
             raise DictValueNotFoundError(dc_field, origin_dict)
         elif value_from_dict is None:
             # Here, we've got a value of None for an optional field. Don't bother trying to convert it.
-            init_args[dc_field.name] = value_from_dict
+            dc_init_args[dc_field.name] = value_from_dict
             continue
 
         try:
             converted_value = _convert_value_for_dataclass(value_from_dict, dc_field)
-        except DictValueConversionError as e:
+        except DictValueConversionError:
             if not dc_field.metadata.get("ignore_conversion_errors", False):
-                raise e
+                raise
             else:
                 converted_value = None
 
-        init_args[dc_field.name] = converted_value
+        dc_init_args[dc_field.name] = converted_value
 
-    return dataclass_type(**init_args)
+    return dataclass_type(**dc_init_args)
