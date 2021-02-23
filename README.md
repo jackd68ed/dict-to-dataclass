@@ -114,7 +114,7 @@ dataclass_instance = MyDataclass.from_dict(origin_dict)
 ["First", "Second", "Third"]
 ```
 
-If we were to use `typing.List` or `list` as the field type, an error would be raised when converting the dictionary (there's more info on errors later).
+If we were to use the more generic `typing.List` or `list` as the field type, an error would be raised when converting the dictionary (there's more info on errors later).
 
 ```python
 @dataclass
@@ -125,21 +125,47 @@ origin_dict = {
     "my_list_field": ["First", "Second", "Third"]
 }
 
-# Here, a `NonSpecificListFieldError` is raised
+# Here, an `UnspecificListFieldError` is raised
 dataclass_instance = MyDataclass.from_dict(origin_dict)
+```
+
+Lists of other dataclasses are also supported.
+
+```python
+@dataclass
+class Child(DataclassFromDict):
+    name: str = field_from_dict()
+
+
+@dataclass
+class Parent(DataclassFromDict):
+    children: List[Child] = field_from_dict()
+
+
+origin_dict = {
+  "children": [
+      { "name": "Jane" },
+      { "name": "Joe" },
+  ]
+}
+
+dataclass_instance = Parent.from_dict(origin_dict)
+
+>>> dataclass_instance.children
+[Child(name='Jane'), Child(name='Joe')]
 ```
 
 ## Custom value converters
 
-By default, `str`, `int`, `bool`, `float` types can be taken from dictionaries without conversion.
+By default, `str`, `int`, `bool` and `float` types can be taken from dictionaries without conversion.
 
-Dataclass fields of type `datetime` can be converted from
+Dataclass fields of type `datetime` are also handled and can be converted from
 
-- Strings (handled by `dateutil`)
+- Strings (handled by [dateutil](https://dateutil.readthedocs.io/en/stable/))
 - Python-style timestamps of type `float`, e.g. `1602436272.681808`
 - Javascript-style timestamps of type `int`, e.g. `1602436323268`
 
-If you need to convert a dictionary value that isn't covered by the defaults, you can pass in a converter function to `field_from_dict`:
+If you need to convert a dictionary value that isn't covered by the defaults, you can pass in a converter function using `field_from_dict`'s `converter` parameter:
 
 ```python
 def yes_no_to_bool(yes_no: str) -> bool:
