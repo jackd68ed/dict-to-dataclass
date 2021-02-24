@@ -1,19 +1,24 @@
 # Table of contents
 
 - [Dict to dataclass](#dict-to-dataclass)
-  - [Nested data classes](#nested-data-classes)
   - [Finding dictionary values](#finding-dictionary-values)
+  - [Nested data classes](#nested-data-classes)
   - [Lists](#lists)
   - [Value conversion](#value-conversion)
     - [Datetime](#datetime)
     - [Enum](#enum)
     - [Custom converters](#custom-converters)
+  - [Optional types](#optional-types)
 
 # Dict to dataclass
 
 Utils for mapping dataclass fields to dictionary keys, making it possible to create an instance of a dataclass from a dictionary.
 
 ```python
+from dataclasses import dataclass
+from dict_to_dataclass import DataclassFromDict, field_from_dict
+
+
 # Declare dataclass fields with `field_from_dict`
 @dataclass
 class MyDataclass(DataclassFromDict):
@@ -40,33 +45,6 @@ dataclass_instance = MyDataclass.from_dict(origin_dict)
 
 >>> dataclass_instance.my_date
 datetime.datetime(2020, 10, 11, 13, 21, 23, 396748)
-```
-
-## Nested data classes
-
-Nested dictionaries can be represented by nested dataclasses.
-
-```python
-@dataclass
-class Child(DataclassFromDict):
-    my_field: str = field_from_dict()
-
-
-@dataclass
-class Parent(DataclassFromDict):
-    child_field: Child = field_from_dict()
-
-
-origin_dict = {
-  "child_field": {
-      "my_field": "Hello"
-  }
-}
-
-dataclass_instance = Parent.from_dict(origin_dict)
-
->>> dataclass_instance.child_field.my_field
-"Hello"
 ```
 
 ## Finding dictionary values
@@ -104,6 +82,33 @@ dataclass_instance = MyDataclass.from_dict(origin_dict)
 
 >>> dataclass_instance.name_in_dataclass
 "field value"
+```
+
+## Nested data classes
+
+Nested dictionaries can be represented by nested dataclasses.
+
+```python
+@dataclass
+class Child(DataclassFromDict):
+    my_field: str = field_from_dict()
+
+
+@dataclass
+class Parent(DataclassFromDict):
+    child_field: Child = field_from_dict()
+
+
+origin_dict = {
+  "child_field": {
+      "my_field": "Hello"
+  }
+}
+
+dataclass_instance = Parent.from_dict(origin_dict)
+
+>>> dataclass_instance.child_field.my_field
+"Hello"
 ```
 
 ## Lists
@@ -194,9 +199,7 @@ class MyDataclass(DataclassFromDict):
     number: Number = field_from_dict()
 
 
-origin_dict = {"number": "TWO"}
-
-dataclass_instance = MyDataclass.from_dict(origin_dict)
+dataclass_instance = MyDataclass.from_dict({"number": "TWO"})
 
 >>> dataclass_instance.number
 <Number.TWO: 2>
@@ -217,12 +220,25 @@ def yes_no_to_bool(yes_no: str) -> bool:
 class MyDataclass(DataclassFromDict):
     is_yes: bool = field_from_dict(converter=yes_no_to_bool)
 
-origin_dict = {
-    "is_yes": "yes"
-}
-
-dataclass_instance = MyDataclass.from_dict(origin_dict)
+dataclass_instance = MyDataclass.from_dict({"is_yes": "yes"})
 
 >>> dataclass_instance.is_yes
 True
 ```
+
+## Optional types
+
+If you expect that the dictionary value for a field might be `None`, the dataclass field should be given an `Optional` type.
+
+```python
+@dataclass
+class MyDataclass(DataclassFromDict):
+    my_field: Optional[str] = field_from_dict()
+
+dataclass_instance = MyDataclass.from_dict({"myField": None})
+
+>>> dataclass_instance.my_field
+None
+```
+
+If `my_field` above had the type `str` instead, a `DictValueNotFoundError` would be raised.
