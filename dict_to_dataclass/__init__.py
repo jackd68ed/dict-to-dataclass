@@ -13,6 +13,7 @@ from dict_to_dataclass.exceptions import (
 )
 
 __version__ = "0.0.4"
+__all__ = ["DataclassFromDict", "field_from_dict", "dataclass_from_dict"]
 
 # Allow export from top-level package
 DataclassFromDict = dict_to_dataclass._base_class.DataclassFromDict
