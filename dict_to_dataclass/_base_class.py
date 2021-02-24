@@ -1,6 +1,6 @@
 import json
 
-from dict_to_dataclass import dataclass_from_dict
+import dict_to_dataclass
 
 
 class DataclassFromDict:
@@ -9,7 +9,7 @@ class DataclassFromDict:
     @classmethod
     def from_dict(cls, origin_dict: dict):
         """Init an instance of this dataclass from a dictionary"""
-        return dataclass_from_dict(cls, origin_dict)
+        return dict_to_dataclass.dataclass_from_dict(cls, origin_dict)
 
     @classmethod
     def from_json(cls, json_str: str):

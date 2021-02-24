@@ -2,8 +2,9 @@ from dataclasses import MISSING, Field, field, fields, is_dataclass
 from enum import Enum
 from typing import Any, Callable, Dict, Optional, Type, TypeVar
 
-from dict_to_dataclass.converters import default_value_converter_map
-from dict_to_dataclass.converters.enum_converter import convert_enum
+import dict_to_dataclass._base_class
+from ._converters import default_value_converter_map
+from ._converters.enum_converter import convert_enum
 from dict_to_dataclass.exceptions import (
     DictKeyNotFoundError,
     DictValueConversionError,
@@ -12,6 +13,9 @@ from dict_to_dataclass.exceptions import (
 )
 
 __version__ = "0.0.4"
+
+# Allow export from top-level package
+DataclassFromDict = dict_to_dataclass._base_class.DataclassFromDict
 
 
 def field_from_dict(
@@ -157,10 +161,10 @@ def _get_value_from_dict(dc_field: Field, origin_dict: dict):
         raise DictKeyNotFoundError(dc_field, origin_dict)
 
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 
 
-def dataclass_from_dict(dataclass_type: Type[T], origin_dict: dict) -> T:
+def dataclass_from_dict(dataclass_type: Type[_T], origin_dict: dict) -> _T:
     """Create a dataclass instance from the given parsed dict
 
     :param dataclass_type: The type of the dataclass to be instantiated

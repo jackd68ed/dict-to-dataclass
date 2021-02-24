@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from unittest import TestCase
-from dict_to_dataclass.base_class import DataclassFromDict
-from dict_to_dataclass import field_from_dict
+
+from dict_to_dataclass import DataclassFromDict, field_from_dict
 
 
 class BaseClassTestCase(TestCase):

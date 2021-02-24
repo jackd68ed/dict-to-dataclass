@@ -38,6 +38,12 @@ class DictValueConversionError(DataclassFromDictError):
         self.value_from_json = value_from_dict
 
 
+class EnumValueNotFoundError(DictValueConversionError):
+    """Raised when a dict value is not found in a dataclass field's `Enum` type"""
+
+    pass
+
+
 class UnspecificListFieldError(DataclassFromDictError):
     """Raised when a list field in a dataclass does not specify the type of its items
 

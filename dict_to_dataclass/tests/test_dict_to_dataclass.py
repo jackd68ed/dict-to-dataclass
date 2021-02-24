@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from dict_to_dataclass.base_class import DataclassFromDict
 from typing import List, Optional
 from unittest import TestCase
 
 from dict_to_dataclass import (
+    DataclassFromDict,
     dataclass_from_dict,
     field_from_dict,
     DictKeyNotFoundError,
