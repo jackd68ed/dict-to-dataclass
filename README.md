@@ -278,7 +278,7 @@ dataclass_instance = MyDataclass.from_dict({"myField": None})
 
 ## Data validation
 
-A side effect of converting a dictionary to a dataclass instance is that the data in the dictionary is validate, which can be useful on its own. For example, imagine we're writing a handler for a POST method in a REST API. If we use a `DataclassFromDict` to describe the request body, we can validate the user's input by attempting to convert it to a dataclass instance.
+A side effect of converting a dictionary to a dataclass instance is that the data in the dictionary is validated, which can be useful on its own. For example, imagine we're writing a handler for a POST method in a REST API. If we use a `DataclassFromDict` to describe the request body, we can validate the user's input by attempting to convert it to a dataclass instance.
 
 ```python
 @dataclass
