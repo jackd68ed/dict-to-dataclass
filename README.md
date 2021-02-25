@@ -9,6 +9,7 @@
     - [Enum](#enum)
     - [Custom converters](#custom-converters)
   - [Optional types](#optional-types)
+  - [Missing values](#missing-values)
 
 # Dict to dataclass
 
@@ -242,3 +243,24 @@ None
 ```
 
 If `my_field` above had the type `str` instead, a `DictValueNotFoundError` would be raised.
+
+## Missing values
+
+If you expect that the field might be missing from the dictionary, you should provide a value to either the `default` or `default_factory` parameters of `field_from_dict`. These are passed through to the underlying `dataclasses.field` call, which you can read about [here](https://docs.python.org/3/library/dataclasses.html#dataclasses.field).
+
+If no default value is provided and the key is not found in the dictionary, a `DictKeyNotFoundError` is raised.
+
+```python
+@dataclass
+class MyDataclass(DataclassFromDict):
+    my_field: str = field_from_dict(default="default value")
+    my_list_field: str = field_from_dict(default_factory=list)
+
+dataclass_instance = MyDataclass.from_dict({})
+
+>>> dataclass_instance.my_field
+"default value"
+
+>>> dataclass_instance.my_list_field
+[]
+```
