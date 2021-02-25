@@ -12,7 +12,17 @@ class DictKeyNotFoundError(DataclassFromDictError):
     """Raised when a key cannot be found in a dictionary while converting it to a dataclass instance"""
 
     def __init__(self, dataclass_field: Field, origin_dict: dict):
-        self.field = dataclass_field
+        # If the field has a dict_key explicitly set, include it in the error message
+        field_dict_key = dataclass_field.metadata.get("dict_key")
+        field_dict_key_for_message = (
+            f" (with '{field_dict_key}' specified as dict_key)" if field_dict_key is not None else ""
+        )
+
+        super().__init__(
+            f"Could not find a dictionary key for the {dataclass_field.name} field{field_dict_key_for_message}."
+        )
+
+        self.dataclass_field = dataclass_field
         self.origin_dict = origin_dict
 
 
@@ -23,10 +33,10 @@ class DictValueNotFoundError(DataclassFromDictError):
         super().__init__(
             f"A value of None was found for the field, {dataclass_field.name} but the field does not have an optional "
             f"type. If you expect the value of this field to potentially be None, you can make its type "
-            f"Optional[{dataclass_field.type.__name__}]."
+            f"Optional[{dataclass_field.type.__name__}].",
         )
 
-        self.field = dataclass_field
+        self.dataclass_field = dataclass_field
         self.origin_dict = origin_dict
 
 
@@ -34,14 +44,23 @@ class DictValueConversionError(DataclassFromDictError):
     """Raised when a value in a dictionary cannot be converted"""
 
     def __init__(self, dataclass_field: Optional[Field], value_from_dict):
-        self.field = dataclass_field
-        self.value_from_json = value_from_dict
+        super().__init__(
+            f"Could not convert dictionary value to type {dataclass_field.type.__name__} for field "
+            f"{dataclass_field.name}. Found value '{value_from_dict}' of type {type(value_from_dict).__name__}."
+        )
+
+        self.dataclass_field = dataclass_field
+        self.value_from_dict = value_from_dict
 
 
 class EnumValueNotFoundError(DictValueConversionError):
     """Raised when a dict value is not found in a dataclass field's `Enum` type"""
 
-    pass
+    def __init__(self, dataclass_field: Optional[Field], value_from_dict):
+        super().__init__(f"The value, '{value_from_dict}' was not found in the {dataclass_field.type.__name__} enum.")
+
+        self.dataclass_field = dataclass_field
+        self.value_from_dict = value_from_dict
 
 
 class UnspecificListFieldError(DataclassFromDictError):
@@ -56,4 +75,10 @@ class UnspecificListFieldError(DataclassFromDictError):
         list_of_strings: List[str] = field_from_dict()
     """
 
-    pass
+    def __init__(self, dataclass_field: Optional[Field]):
+        super().__init__(
+            f"An item type was not specified for the list field, {dataclass_field.name}. Please give the field a type "
+            "like 'List[<item type>]' to allow conversion from a dictionary."
+        )
+
+        self.dataclass_field = dataclass_field

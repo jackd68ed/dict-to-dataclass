@@ -46,12 +46,12 @@ def _no_conversion_required_for_dict_value(value, field_type):
     return (field_type in [bool, float, int, str] and isinstance(value, field_type)) or value is None
 
 
-def _type_is_list_with_item_type(field_type):
+def _type_is_list_with_item_type(field_type: Type, dc_field: Field):
     """True if the given type is `typing.List` with an item type specified"""
     is_list = hasattr(field_type, "__origin__") and field_type.__origin__ is list
 
     if is_list and isinstance(field_type.__args__[0], TypeVar):
-        raise UnspecificListFieldError()
+        raise UnspecificListFieldError(dataclass_field=dc_field)
 
     return is_list
 
@@ -116,10 +116,10 @@ def _convert_value_for_dataclass(value_from_dict, dc_field: Field = None, list_i
     if (default_converter_value := _use_default_converter(dc_field, field_type, value_from_dict)) is not None:
         return default_converter_value
 
-    if _type_is_list_with_item_type(field_type):
+    if _type_is_list_with_item_type(field_type, dc_field):
         return [_convert_value_for_dataclass(item, list_item_type=field_type.__args__[0]) for item in value_from_dict]
     elif field_type is list:
-        raise UnspecificListFieldError()
+        raise UnspecificListFieldError(dataclass_field=dc_field)
 
     if is_dataclass(field_type):
         return dataclass_from_dict(field_type, value_from_dict)

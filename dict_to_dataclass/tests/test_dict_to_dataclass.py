@@ -7,10 +7,12 @@ from dict_to_dataclass import (
     DataclassFromDict,
     dataclass_from_dict,
     field_from_dict,
-    DictKeyNotFoundError,
+)
+from dict_to_dataclass.exceptions import (
     DictValueConversionError,
-    UnspecificListFieldError,
+    DictKeyNotFoundError,
     DictValueNotFoundError,
+    UnspecificListFieldError,
 )
 
 
@@ -181,12 +183,27 @@ class DictToDataclassTestCase(TestCase):
     def test_should_raise_error_if_key_not_found(self):
         @dataclass
         class TestClass:
-            param: str = field_from_dict("notFoundField")
+            my_field: str = field_from_dict()
 
-        origin_dict = {"unexpectedField": "value"}
+        @dataclass
+        class TestClassWithDictKeySpecified:
+            my_field: str = field_from_dict("myFieldInDict")
 
-        with self.assertRaises(DictKeyNotFoundError):
-            dataclass_from_dict(TestClass, origin_dict)
+        # Check the message with no dict_key specified
+        with self.assertRaises(DictKeyNotFoundError) as context:
+            dataclass_from_dict(TestClass, {"unexpectedField": "value"})
+
+        expected_message = "Could not find a dictionary key for the my_field field."
+        self.assertEqual(expected_message, str(context.exception))
+
+        # Check the message with dict_key specified
+        with self.assertRaises(DictKeyNotFoundError) as with_dict_key_context:
+            dataclass_from_dict(TestClassWithDictKeySpecified, {"unexpectedField": "value"})
+
+        with_dict_key_expected_message = (
+            "Could not find a dictionary key for the my_field field (with 'myFieldInDict' specified as dict_key)."
+        )
+        self.assertEqual(with_dict_key_expected_message, str(with_dict_key_context.exception))
 
     def test_not_should_raise_error_if_key_not_found_for_field_with_default_value(self):
         @dataclass
@@ -201,26 +218,38 @@ class DictToDataclassTestCase(TestCase):
     def test_should_raise_error_if_attribute_cannot_be_converted(self):
         @dataclass
         class TestClass:
-            param: Decimal = field_from_dict("testField")
+            my_field: Decimal = field_from_dict()
 
-        origin_dict = {"testField": "cannot_convert"}
+        origin_dict = {"myField": "cannot_convert"}
 
-        with self.assertRaises(DictValueConversionError):
+        with self.assertRaises(DictValueConversionError) as context:
             dataclass_from_dict(TestClass, origin_dict)
+
+        expected_message = (
+            "Could not convert dictionary value to type Decimal for field my_field. Found value 'cannot_convert' of "
+            "type str."
+        )
+        self.assertEqual(expected_message, str(context.exception))
 
     def test_should_raise_error_if_list_field_doesnt_specify_item_type(self):
         @dataclass
         class TestClass1:
-            list_param: List = field_from_dict("testList")
+            list_field: List = field_from_dict()
 
         @dataclass
         class TestClass2:
-            list_param: list = field_from_dict("testList")
+            list_field: list = field_from_dict()
 
-        origin_dict = {"testList": []}
+        origin_dict = {"listField": []}
 
         with self.assertRaises(UnspecificListFieldError):
             dataclass_from_dict(TestClass1, origin_dict)
 
-        with self.assertRaises(UnspecificListFieldError):
+        with self.assertRaises(UnspecificListFieldError) as context:
             dataclass_from_dict(TestClass2, origin_dict)
+
+        expected_message = (
+            "An item type was not specified for the list field, list_field. Please give the field a type like "
+            "'List[<item type>]' to allow conversion from a dictionary."
+        )
+        self.assertEqual(expected_message, str(context.exception))
