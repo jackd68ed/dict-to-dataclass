@@ -10,6 +10,7 @@
     - [Custom converters](#custom-converters)
   - [Optional types](#optional-types)
   - [Missing values](#missing-values)
+  - [Data validation](#data-validation)
 
 # Dict to dataclass
 
