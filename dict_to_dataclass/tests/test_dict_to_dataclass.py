@@ -13,7 +13,7 @@ class DictToDataclassTestCase(TestCase):
     def test_should_return_dataclass_instance(self):
         @dataclass
         class TestClass:
-            param: str = "default"
+            my_field: str = "default"
 
         self.assertEqual(TestClass(), dataclass_from_dict(TestClass, {}))
 
@@ -38,7 +38,6 @@ class DictToDataclassTestCase(TestCase):
             test_int_field=123,
             test_str_field="string_value",
         )
-
         self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
 
     def test_should_use_field_name_if_dict_key_is_missing(self):
@@ -49,71 +48,64 @@ class DictToDataclassTestCase(TestCase):
         origin_dict = {"my_field": "valueDoesntMatter"}
 
         expected = TestClass(my_field="valueDoesntMatter")
-
         self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
 
     def test_should_use_camel_cased_field_name_if_dict_key_is_missing_and_dict_has_camel_case_keys(self):
         @dataclass
         class TestClass(DataclassFromDict):
-            dict_has_camel_case_keys = True
-
             my_field: str = field_from_dict()
 
         origin_dict = {"myField": "valueDoesntMatter"}
 
         expected = TestClass(my_field="valueDoesntMatter")
-
         self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
 
     def test_should_use_field_converter_if_present(self):
         @dataclass
         class TestClass:
-            param: str = field_from_dict("testField", converter=lambda x: "converter_result")
+            my_field: str = field_from_dict("testField", converter=lambda x: "converter_result")
 
         origin_dict = {"testField": "valueDoesntMatter"}
 
-        expected = TestClass(param="converter_result")
-
+        expected = TestClass(my_field="converter_result")
         self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
 
     def test_should_get_field_of_dataclass_type(self):
         @dataclass
         class TestChildClass:
-            param: str = field_from_dict("testChildField")
+            my_field: str = field_from_dict()
 
         @dataclass
         class TestClass:
-            dc_param: TestChildClass = field_from_dict("testChild")
+            child_field: TestChildClass = field_from_dict()
 
-        origin_dict = {"testChild": {"testChildField": "testChildFieldValue"}}
+        origin_dict = {"childField": {"myField": "testChildFieldValue"}}
 
-        expected = TestClass(dc_param=TestChildClass(param="testChildFieldValue"))
-
+        expected = TestClass(child_field=TestChildClass(my_field="testChildFieldValue"))
         self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
 
     def test_should_get_field_of_list_type(self):
         @dataclass
         class TestClass:
-            dc_param: List[str] = field_from_dict("testList")
+            my_field: List[str] = field_from_dict("testList")
 
         origin_dict = {"testList": ["value1", "value2"]}
 
-        expected = TestClass(dc_param=["value1", "value2"])
-
+        expected = TestClass(my_field=["value1", "value2"])
         self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
 
     def test_should_get_field_of_list_of_dataclasses(self):
         @dataclass
         class TestChildClass:
-            param: str = field_from_dict("testChildStrField")
-            converter_param: str = field_from_dict("testChildConvertedField", lambda x: "convertedValue")
+            my_field: str = field_from_dict("testChildStrField")
+            field_with_converter: str = field_from_dict("testChildConvertedField", lambda x: "convertedValue")
 
         @dataclass
         class TestClass:
-            dc_param: List[TestChildClass] = field_from_dict("testList")
+            children: List[TestChildClass] = field_from_dict()
 
         origin_dict = {
-            "testList": [
+            "children": [
                 {
                     "testChildStrField": "testStrValue",
                     "testChildConvertedField": "testRawValue",
@@ -126,21 +118,19 @@ class DictToDataclassTestCase(TestCase):
         }
 
         expected = TestClass(
-            dc_param=[
-                TestChildClass(param="testStrValue", converter_param="convertedValue"),
-                TestChildClass(param="testStrValue", converter_param="convertedValue"),
+            children=[
+                TestChildClass(my_field="testStrValue", field_with_converter="convertedValue"),
+                TestChildClass(my_field="testStrValue", field_with_converter="convertedValue"),
             ]
         )
-
         self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
 
     def test_should_use_converter_for_list_field(self):
         @dataclass
         class TestClass:
-            dc_param: List[str] = field_from_dict("testList", lambda x: ["convertedValue"])
+            my_field: List[str] = field_from_dict(converter=lambda x: ["convertedValue"])
 
-        origin_dict = {"testList": []}
+        origin_dict = {"myField": []}
 
-        expected = TestClass(dc_param=["convertedValue"])
-
+        expected = TestClass(my_field=["convertedValue"])
         self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
