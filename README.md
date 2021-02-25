@@ -20,7 +20,7 @@ from dataclasses import dataclass
 from dict_to_dataclass import DataclassFromDict, field_from_dict
 
 
-# Declare dataclass fields with `field_from_dict`
+# Declare dataclass fields with field_from_dict
 @dataclass
 class MyDataclass(DataclassFromDict):
     my_string: str = field_from_dict()
@@ -28,7 +28,7 @@ class MyDataclass(DataclassFromDict):
     my_date: datetime = field_from_dict()
 
 
-# Create a dataclass instance using the `from_dict` constructor
+# Create a dataclass instance using the from_dict constructor
 origin_dict = {
   "my_string": "Hello",
   "my_int": 123,
@@ -142,7 +142,7 @@ origin_dict = {
     "my_list_field": ["First", "Second", "Third"]
 }
 
-# Here, an `UnspecificListFieldError` is raised
+# Here, an UnspecificListFieldError is raised
 dataclass_instance = MyDataclass.from_dict(origin_dict)
 ```
 
@@ -263,4 +263,15 @@ dataclass_instance = MyDataclass.from_dict({})
 
 >>> dataclass_instance.my_list_field
 []
+```
+
+Note that if the field exists in the dictionary and has a value of `None`, `default` and `default_factory` are _not_ used. You would still need to give the field an `Optional` type.
+
+```python
+@dataclass
+class MyDataclass(DataclassFromDict):
+    my_field: str = field_from_dict(default="default value")
+
+# Here, a DictValueNotFoundError is raised
+dataclass_instance = MyDataclass.from_dict({"myField": None})
 ```
