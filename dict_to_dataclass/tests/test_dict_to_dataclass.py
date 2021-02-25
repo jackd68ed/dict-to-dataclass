@@ -208,18 +208,6 @@ class DictToDataclassTestCase(TestCase):
         with self.assertRaises(DictValueConversionError):
             dataclass_from_dict(TestClass, origin_dict)
 
-    def test_should_set_field_to_none_if_attribute_cannot_be_converted_and_should_ignore_errors(
-        self,
-    ):
-        @dataclass
-        class TestClass:
-            param: Decimal = field_from_dict("testField", ignore_conversion_errors=True)
-
-        origin_dict = {"testField": "cannot_convert"}
-
-        dc = dataclass_from_dict(TestClass, origin_dict)
-        self.assertIsNone(dc.param)
-
     def test_should_raise_error_if_list_field_doesnt_specify_item_type(self):
         @dataclass
         class TestClass1:

@@ -22,7 +22,6 @@ DataclassFromDict = dict_to_dataclass._base_class.DataclassFromDict
 def field_from_dict(
     dict_key: str = None,
     converter: Callable = None,
-    ignore_conversion_errors: bool = False,
     *args,
     **kwargs,
 ):
@@ -31,13 +30,10 @@ def field_from_dict(
     :param dict_key: The key in the dict that contains the value for this field. If omitted, the name of the field in
         the dataclass is used.
     :param converter: The function to convert the dict value to the type of the class field
-    :param ignore_conversion_errors: True if `DictValueConversionError`s should be ignored. `None` will be returned on
-        error if True.
     """
     dict_field_metadata = {
         "converter": converter,
         "dict_key": dict_key,
-        "ignore_conversion_errors": ignore_conversion_errors,
         "should_get_from_dict": True,
     }
     metadata: Dict[str, Any] = {**kwargs.pop("metadata", {}), **dict_field_metadata}
@@ -204,14 +200,6 @@ def dataclass_from_dict(dataclass_type: Type[_T], origin_dict: dict) -> _T:
             dc_init_args[dc_field.name] = value_from_dict
             continue
 
-        try:
-            converted_value = _convert_value_for_dataclass(value_from_dict, dc_field)
-        except DictValueConversionError:
-            if not dc_field.metadata.get("ignore_conversion_errors", False):
-                raise
-            else:
-                converted_value = None
-
-        dc_init_args[dc_field.name] = converted_value
+        dc_init_args[dc_field.name] = _convert_value_for_dataclass(value_from_dict, dc_field)
 
     return dataclass_type(**dc_init_args)
