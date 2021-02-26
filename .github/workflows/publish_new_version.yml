@@ -33,6 +33,7 @@ jobs:
     - name: Build
       run: |
         python -m build
+        echo -e "\nFiles in package:"
         tar tzf $(find dist -iname '*.tar.gz')
 
     - name: Upload
