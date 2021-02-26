@@ -1,4 +1,5 @@
 import setuptools
+import dict_to_dataclass
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -8,7 +9,7 @@ with open("requirements.txt", "r") as f:
 
 setuptools.setup(
     name="dict_to_dataclass",
-    version="0.0.4",
+    version=dict_to_dataclass.__version__,
     author="Daniel Jack",
     author_email="jackd68ed@googlemail.com",
     long_description=long_description,
