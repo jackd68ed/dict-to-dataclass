@@ -1,5 +1,4 @@
 import setuptools
-import dict_to_dataclass
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -9,12 +8,12 @@ with open("requirements.txt", "r") as f:
 
 setuptools.setup(
     name="dict_to_dataclass",
-    version=dict_to_dataclass.__version__,
+    version="0.0.5",
     author="Daniel Jack",
     author_email="jackd68ed@googlemail.com",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=setuptools.find_packages(exclude=("*.tests",)),
+    packages=setuptools.find_packages(exclude=("tests",)),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
