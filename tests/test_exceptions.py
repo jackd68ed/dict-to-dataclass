@@ -73,11 +73,11 @@ class ExceptionsTestCase(TestCase):
     def test_not_should_raise_error_if_key_not_found_for_field_with_default_value(self):
         @dataclass
         class TestClass:
-            param: str = field_from_dict("notFoundField", default="default value")
+            my_field: str = field_from_dict("notFoundField", default="default value")
 
         origin_dict = {"unexpectedField": "value"}
 
-        expected = TestClass(param="default value")
+        expected = TestClass(my_field="default value")
         self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
 
     def test_should_raise_error_if_attribute_cannot_be_converted(self):

@@ -53,11 +53,11 @@ class DictValueConversionError(DataclassFromDictError):
         self.value_from_dict = value_from_dict
 
 
-class EnumValueNotFoundError(DictValueConversionError):
+class EnumValueNotFoundError(DataclassFromDictError):
     """Raised when a dict value is not found in a dataclass field's `Enum` type"""
 
     def __init__(self, dataclass_field: Optional[Field], value_from_dict):
-        super().__init__(f"The value, '{value_from_dict}' was not found in the {dataclass_field.type.__name__} enum.")
+        super().__init__(f"The value '{value_from_dict}' was not found in the {dataclass_field.type.__name__} enum.")
 
         self.dataclass_field = dataclass_field
         self.value_from_dict = value_from_dict

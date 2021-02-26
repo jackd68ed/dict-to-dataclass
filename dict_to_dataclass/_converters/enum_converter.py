@@ -10,4 +10,4 @@ def convert_enum(dc_field: Optional[Field], value: Any, enum: Type[Enum]):
     try:
         return enum[value]
     except KeyError:
-        raise EnumValueNotFoundError(dc_field, value)
+        raise EnumValueNotFoundError(dataclass_field=dc_field, value_from_dict=value)

@@ -3,9 +3,8 @@ from enum import Enum
 from typing import Optional
 from unittest import TestCase
 
-from dict_to_dataclass import field_from_dict
-from dict_to_dataclass.base_class import DataclassFromDict
-from exceptions import EnumValueNotFoundError
+from dict_to_dataclass import DataclassFromDict, field_from_dict
+from dict_to_dataclass.exceptions import EnumValueNotFoundError
 
 
 class MyEnum(Enum):
@@ -31,14 +30,23 @@ class EnumConverterTestCase(TestCase):
         self.assertEqual(dataclass_instance.enum_field, MyEnum.SECOND)
 
     def test_should_raise_conversion_error_if_enum_value_doesnt_exist(self):
-        with self.assertRaises(EnumValueNotFoundError):
+        with self.assertRaises(EnumValueNotFoundError) as context:
             MyDataclass.from_dict({"enumField": "DOESNT_EXIST"})
 
-        with self.assertRaises(EnumValueNotFoundError):
+        expected_message = "The value 'DOESNT_EXIST' was not found in the MyEnum enum."
+        self.assertEqual(expected_message, str(context.exception))
+
+        with self.assertRaises(EnumValueNotFoundError) as context:
             MyDataclass.from_dict({"enumField": 1})
 
-        with self.assertRaises(EnumValueNotFoundError):
+        expected_message = "The value '1' was not found in the MyEnum enum."
+        self.assertEqual(expected_message, str(context.exception))
+
+        with self.assertRaises(EnumValueNotFoundError) as context:
             MyDataclass.from_dict({"enumField": True})
+
+        expected_message = "The value 'True' was not found in the MyEnum enum."
+        self.assertEqual(expected_message, str(context.exception))
 
     def test_should_handle_optional_type(self):
         origin_dict = {"enumField": "SECOND"}
