@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import List
 from unittest import TestCase
 
@@ -37,6 +38,28 @@ class DictToDataclassTestCase(TestCase):
             test_float_field=12.34,
             test_int_field=123,
             test_str_field="string_value",
+        )
+        self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
+
+    def test_should_get_non_primitive_values_if_no_conversion_is_needed(self):
+        class MyCustomClass:
+            pass
+
+        @dataclass
+        class TestClass:
+            decimal_field: Decimal = field_from_dict()
+            custom_class_field: MyCustomClass = field_from_dict()
+
+        custom_class_instance = MyCustomClass()
+
+        origin_dict = {
+            "custom_class_field": custom_class_instance,
+            "decimal_field": Decimal(1),
+        }
+
+        expected = TestClass(
+            decimal_field=Decimal(1),
+            custom_class_field=custom_class_instance,
         )
         self.assertEqual(expected, dataclass_from_dict(TestClass, origin_dict))
 

@@ -42,11 +42,6 @@ def field_from_dict(
     return field(metadata=metadata, *args, **kwargs)
 
 
-def _no_conversion_required_for_dict_value(value, field_type):
-    """True if the given value from a dict can be set to a dataclass field without conversation"""
-    return (field_type in [bool, float, int, str] and isinstance(value, field_type)) or value is None
-
-
 def _use_default_converter(dc_field: Optional[Field], field_type: Any, value_from_dict: Any):
     try:
         if issubclass(field_type, Enum):
@@ -85,19 +80,19 @@ def _convert_value_for_dataclass(value_from_dict, dc_field: Field = None, list_i
     if field_converter:
         return field_converter(value_from_dict)
 
-    if (default_converter_value := _use_default_converter(dc_field, field_type, value_from_dict)) is not None:
-        return default_converter_value
-
     if type_is_list_with_item_type(field_type, dc_field):
         return [_convert_value_for_dataclass(item, list_item_type=field_type.__args__[0]) for item in value_from_dict]
     elif field_type is list:
         raise UnspecificListFieldError(dataclass_field=dc_field)
 
+    if isinstance(value_from_dict, field_type):
+        return value_from_dict
+
+    if (default_converter_value := _use_default_converter(dc_field, field_type, value_from_dict)) is not None:
+        return default_converter_value
+
     if is_dataclass(field_type):
         return dataclass_from_dict(field_type, value_from_dict)
-
-    if _no_conversion_required_for_dict_value(value_from_dict, field_type):
-        return value_from_dict
 
     raise DictValueConversionError(dc_field, value_from_dict)
 

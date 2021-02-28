@@ -1,6 +1,7 @@
 # Table of contents
 
 - [Dict to dataclass](#dict-to-dataclass)
+  - [Why?](#why)
   - [Finding dictionary values](#finding-dictionary-values)
   - [Nested data classes](#nested-data-classes)
   - [Lists](#lists)
@@ -14,7 +15,7 @@
 
 # Dict to dataclass
 
-Utils for mapping dataclass fields to dictionary keys, making it possible to create an instance of a dataclass from a dictionary.
+Dict to dataclass makes it easy to convert dictionaries to instances of dataclasses.
 
 ```python
 from dataclasses import dataclass
@@ -39,7 +40,7 @@ origin_dict = {
 
 dataclass_instance = MyDataclass.from_dict(origin_dict)
 
-# Now, our dataclass instance has the values from the dictionary
+# Now our dataclass instance has the values from the dictionary
 >>> dataclass_instance.my_string
 "Hello"
 
@@ -50,9 +51,30 @@ dataclass_instance = MyDataclass.from_dict(origin_dict)
 datetime.datetime(2020, 10, 11, 13, 21, 23, 396748)
 ```
 
+## Why?
+
+You can create a dataclass instance from a dictionary already by unpacking the dictionary values and passing them to the dataclass constructor like this:
+
+```python
+origin_dict = {
+  "my_string": "Hello",
+  "my_int": 123,
+  "my_date": "2020-10-11T13:21:23.396748",
+}
+
+dataclass_instance = MyDataclass(**origin_dict)
+```
+
+However, that method doesn't work when we need to consider
+
+- Type validation
+- Type conversion, e.g. an ISO string to a `datetime` instance
+- Differences between dictionary keys and dataclass field names
+- Complex structures with nested dictionaries and lists
+
 ## Finding dictionary values
 
-You may have noticed that we don't need to specify where to look in the dictionary for field values. That's because by default, the name given to the field in the data class is used. It even works if the key in the dictionary is in camelCase:
+You may have noticed that we don't need to specify where to look in the dictionary for field values. That's because by default, the name given to the field in the dataclass is used. It even works if the key in the dictionary is in camelCase:
 
 ```python
 @dataclass
@@ -70,7 +92,7 @@ dataclass_instance = MyDataclass.from_dict(origin_dict)
 "field value"
 ```
 
-It's probably quite common that your dataclass fields have the same names as the dictionary keys they map to but in case they don't, you can pass the dictionary key as the first argument to `field_from_dict`:
+It's probably quite common that your dataclass fields have the same names as the dictionary keys they map to but in case they don't, you can pass the dictionary key as the first argument (or the `dict_key` keyword argument) to `field_from_dict`:
 
 ```python
 @dataclass
@@ -176,11 +198,11 @@ dataclass_instance = Parent.from_dict(origin_dict)
 
 ## Value conversion
 
-By default, `str`, `int`, `bool` and `float` types can be taken from dictionaries without conversion.
+If the value found in the dictionary doesn't match the dataclass field type, the dictionary value can be converted.
 
 ### Datetime
 
-Dataclass fields of type `datetime` are also handled and can be converted from
+Dataclass fields of type `datetime` are handled and can be converted from
 
 - Strings (handled by [dateutil](https://dateutil.readthedocs.io/en/stable/))
 - Python-style timestamps of type `float`, e.g. `1602436272.681808`
@@ -228,6 +250,8 @@ dataclass_instance = MyDataclass.from_dict({"is_yes": "yes"})
 >>> dataclass_instance.is_yes
 True
 ```
+
+A `DictValueConversionError` is raised if the dictionary value cannot be converted.
 
 ## Optional types
 
