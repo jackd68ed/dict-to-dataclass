@@ -3,9 +3,10 @@ from enum import Enum
 from typing import Any, Callable, Dict, Optional, Type, TypeVar
 
 import dict_to_dataclass._base_class
+from ._type_utils import type_is_list_with_item_type, type_is_optional, get_optional_type
 from ._converters import default_value_converter_map
 from ._converters.enum_converter import convert_enum
-from dict_to_dataclass.exceptions import (
+from .exceptions import (
     DictKeyNotFoundError,
     DictValueConversionError,
     DictValueNotFoundError,
@@ -46,35 +47,6 @@ def _no_conversion_required_for_dict_value(value, field_type):
     return (field_type in [bool, float, int, str] and isinstance(value, field_type)) or value is None
 
 
-def _type_is_list_with_item_type(field_type: Type, dc_field: Field):
-    """True if the given type is `typing.List` with an item type specified"""
-    is_list = hasattr(field_type, "__origin__") and field_type.__origin__ is list
-
-    if is_list and isinstance(field_type.__args__[0], TypeVar):
-        raise UnspecificListFieldError(dataclass_field=dc_field)
-
-    return is_list
-
-
-def _type_is_optional(field_type: Type):
-    # TODO: There must be a better way
-    return str(field_type).startswith("typing.Union")
-
-
-def _get_optional_type(field_type: Type) -> Type:
-    """If the given type is optional, return the type that is not none. If not, the given field is returned.
-
-    Example::
-
-        _get_optional_type(Type[Optional[str]])  # str
-        _get_optional_type(Type[str])  # str
-    """
-    if _type_is_optional(field_type):
-        return next(arg for arg in field_type.__args__ if arg is not None)
-    else:
-        return field_type
-
-
 def _use_default_converter(dc_field: Optional[Field], field_type: Any, value_from_dict: Any):
     try:
         if issubclass(field_type, Enum):
@@ -103,7 +75,7 @@ def _convert_value_for_dataclass(value_from_dict, dc_field: Field = None, list_i
     field_type = dc_field.type if dc_field else list_item_type
 
     # Handle optional types
-    field_type = _get_optional_type(field_type)
+    field_type = get_optional_type(field_type)
 
     if field_type is None:
         raise Exception("Please provide either dc_field or list_item_type")
@@ -116,7 +88,7 @@ def _convert_value_for_dataclass(value_from_dict, dc_field: Field = None, list_i
     if (default_converter_value := _use_default_converter(dc_field, field_type, value_from_dict)) is not None:
         return default_converter_value
 
-    if _type_is_list_with_item_type(field_type, dc_field):
+    if type_is_list_with_item_type(field_type, dc_field):
         return [_convert_value_for_dataclass(item, list_item_type=field_type.__args__[0]) for item in value_from_dict]
     elif field_type is list:
         raise UnspecificListFieldError(dataclass_field=dc_field)
@@ -193,7 +165,7 @@ def dataclass_from_dict(dataclass_type: Type[_T], origin_dict: dict) -> _T:
             else:
                 raise
 
-        if not _type_is_optional(dc_field.type) and value_from_dict is None:
+        if not type_is_optional(dc_field.type) and value_from_dict is None:
             raise DictValueNotFoundError(dc_field, origin_dict)
         elif value_from_dict is None:
             # Here, we've got a value of None for an optional field. Don't bother trying to convert it.
