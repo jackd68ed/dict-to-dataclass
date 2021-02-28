@@ -8,7 +8,7 @@ with open("requirements.txt", "r") as f:
 
 setuptools.setup(
     name="dict_to_dataclass",
-    version="0.0.6",
+    version="0.0.7",
     author="Daniel Jack",
     author_email="jackd68ed@googlemail.com",
     long_description=long_description,
