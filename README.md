@@ -18,6 +18,7 @@ Utils for mapping dataclass fields to dictionary keys, making it possible to cre
 
 ```python
 from dataclasses import dataclass
+from datetime import datetime
 from dict_to_dataclass import DataclassFromDict, field_from_dict
 
 
