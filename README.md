@@ -2,6 +2,7 @@
 
 - [Dict to dataclass](#dict-to-dataclass)
   - [Why?](#why)
+  - [Installation](#installation)
   - [Finding dictionary values](#finding-dictionary-values)
   - [Nested data classes](#nested-data-classes)
   - [Lists](#lists)
