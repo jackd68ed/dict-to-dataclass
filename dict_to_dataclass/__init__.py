@@ -13,7 +13,7 @@ from .exceptions import (
     UnspecificListFieldError,
 )
 
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 __all__ = ["DataclassFromDict", "field_from_dict", "dataclass_from_dict"]
 
 # Allow export from top-level package
