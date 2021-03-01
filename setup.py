@@ -11,6 +11,10 @@ setuptools.setup(
     version="0.0.7",
     author="Daniel Jack",
     author_email="jackd68ed@googlemail.com",
+    description=(
+        "Utils for mapping dataclass fields to dictionary keys, making it possible to create an instance of a "
+        "dataclass from a dictionary."
+    ),
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(exclude=("tests",)),
