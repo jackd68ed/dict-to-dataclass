@@ -72,6 +72,14 @@ However, that method doesn't work when we need to consider
 - Differences between dictionary keys and dataclass field names
 - Complex structures with nested dictionaries and lists
 
+## Installation
+
+`dict_to_dataclass` can be installed using `pip`
+
+```bash
+pip install dict-to-dataclass
+```
+
 ## Finding dictionary values
 
 You may have noticed that we don't need to specify where to look in the dictionary for field values. That's because by default, the name given to the field in the dataclass is used. It even works if the key in the dictionary is in camelCase:
